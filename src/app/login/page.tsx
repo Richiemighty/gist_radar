@@ -26,11 +26,13 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
-    } catch (err: any) {
-      setError(err.message ?? 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Login failed');
+      }
+    }    
   };
 
   if (user) return <p className="text-center mt-20">Logging you in…</p>;

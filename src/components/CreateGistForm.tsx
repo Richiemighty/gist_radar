@@ -30,18 +30,25 @@ export default function CreateGistForm() {
   const { quill, quillRef } = useQuill();
 
   useEffect(() => {
-    if (quill) {
-      quill.root.setAttribute('spellcheck', 'false');
-      quill.on('text-change', () => {
-        setBlocks(prev =>
-          prev.map((b, idx) =>
-            idx === activeBlockIndex ? { ...b, body: quill.root.innerHTML } : b
-          )
-        );
-      });
-    }
+    if (!quill) return;
+  
+    quill.root.setAttribute('spellcheck', 'false');
+  
+    const handler = () => {
+      setBlocks(prev =>
+        prev.map((b, idx) =>
+          idx === activeBlockIndex ? { ...b, body: quill.root.innerHTML } : b
+        )
+      );
+    };
+  
+    quill.on('text-change', handler);
+  
+    return () => {
+      quill.off('text-change', handler); // clean up
+    };
   }, [quill, activeBlockIndex]);
-
+  
   useEffect(() => {
     if (quill && blocks[activeBlockIndex]) {
       quill.root.innerHTML = blocks[activeBlockIndex].body || '';

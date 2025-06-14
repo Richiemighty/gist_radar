@@ -23,9 +23,9 @@ export async function fetchGists(category: string): Promise<Gist[]> {
 }
 
 
-// lib/api.ts
 export async function searchGists(queryText: string): Promise<Gist[]> {
   if (!queryText.trim()) return [];
+
   const q = query(
     collection(db, 'gists'),
     where('title', '>=', queryText),
@@ -33,6 +33,11 @@ export async function searchGists(queryText: string): Promise<Gist[]> {
     orderBy('title'),
     limit(5)
   );
+
   const snap = await getDocs(q);
-  return snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
+
+  return snap.docs.map((doc) => {
+    const data = doc.data() as Omit<Gist, 'id'>;
+    return { id: doc.id, ...data };
+  });
 }

@@ -27,10 +27,14 @@ export default function SignupPage() {
         savedGists: [],
       });
       router.push('/login');
-    } catch (err: any) {
-      setError(err.message ?? 'Signup failed');
-    }
-  };
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Signup failed');
+        }
+        }
+      };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
