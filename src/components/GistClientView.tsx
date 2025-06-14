@@ -1,16 +1,20 @@
 'use client';
 
+import Image from 'next/image';
 import Comments from '@/components/Comments';
 import Reactions from '@/components/Reactions';
 import RequireAuth from '@/components/RequireAuth';
+import type { Gist } from '@/app/types'; // Import your Gist type
 
-export default function GistClientView({ gist, id }: { gist: any; id: string }) {
+export default function GistClientView({ gist, id }: { gist: Gist; id: string }) {
   return (
     <RequireAuth>
       <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
         <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
         <p className="text-gray-500 text-sm">
-          {new Date(gist.createdAt.toDate()).toLocaleString()}
+          {gist.createdAt?.toDate
+            ? new Date(gist.createdAt.toDate()).toLocaleString()
+            : new Date(gist.createdAt).toLocaleString()}
         </p>
 
         {gist.mediaUrl && (
@@ -18,7 +22,14 @@ export default function GistClientView({ gist, id }: { gist: any; id: string }) 
             {gist.mediaUrl.endsWith('.mp4') ? (
               <video src={gist.mediaUrl} controls className="w-full" />
             ) : (
-              <img src={gist.mediaUrl} alt={gist.title} className="object-cover w-full" />
+              // Use Next.js Image component for better optimization
+              <Image
+                src={gist.mediaUrl}
+                alt={gist.title}
+                width={700}
+                height={400}
+                className="object-cover w-full"
+              />
             )}
           </div>
         )}

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Reactions({ gistId }: { gistId: string }) {
@@ -31,7 +31,7 @@ export default function Reactions({ gistId }: { gistId: string }) {
     if (!user) return alert('Please login to react');
     const docRef = doc(db, 'reactions', gistId);
     const snap = await getDoc(docRef);
-    let data = snap.exists() ? snap.data() : { counts: {}, users: {} };
+    const data = snap.exists() ? snap.data() : { counts: {}, users: {} };
 
     const userReacts: string[] = data.users[user.uid] || [];
     const hasReacted = userReacts.includes(emoji);

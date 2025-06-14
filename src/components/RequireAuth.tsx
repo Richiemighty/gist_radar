@@ -12,7 +12,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     if (!user) {
       router.push('/login');
     }
-  }, [user]);
+  }, [user, router]);  // <-- added router here
 
   if (!user) return null; // or loading spinner
 
