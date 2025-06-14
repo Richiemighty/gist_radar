@@ -1,33 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  serverTimestamp,
-  Timestamp,
-  QueryDocumentSnapshot,
-  DocumentData
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 
-interface Comment {
-  id: string;
-  user: string;
-  text: string;
-  createdAt: Timestamp;
-}
+interface Comment { id: string; user: string; text: string; createdAt: any; }
 
-interface CommentsProps {
-  gistId: string;
-}
-
-export default function Comments({ gistId }: CommentsProps) {
+export default function Comments({ gistId }: { gistId: string }) {
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
@@ -38,48 +18,28 @@ export default function Comments({ gistId }: CommentsProps) {
       where('gistId', '==', gistId),
       orderBy('createdAt', 'asc')
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedComments = snapshot.docs.map(
-        (doc: QueryDocumentSnapshot<DocumentData>) =>
-          ({
-            id: doc.id,
-            user: doc.data().user,
-            text: doc.data().text,
-            createdAt: doc.data().createdAt,
-          } as Comment)
-      );
-      setComments(fetchedComments);
-    });
-
-    return () => unsubscribe();
+    return onSnapshot(q, snap => setComments(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Comment)));
   }, [gistId]);
 
   const handleComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return alert('Login to comment');
-
     await addDoc(collection(db, 'comments'), {
       gistId,
       user: user.email,
       text,
       createdAt: serverTimestamp(),
     });
-
     setText('');
   };
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Comments</h3>
-
-      {comments.map((c) => (
+      {comments.map(c => (
         <div key={c.id} className="border-b pb-2">
           <p className="text-sm text-gray-600">
-            <strong>{c.user}</strong> ·{' '}
-            {c.createdAt?.toDate
-              ? new Date(c.createdAt.toDate()).toLocaleString()
-              : 'Just now'}
+            <strong>{c.user}</strong> · {new Date(c.createdAt.toDate()).toLocaleString()}
           </p>
           <p>{c.text}</p>
         </div>

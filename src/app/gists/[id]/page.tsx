@@ -7,41 +7,28 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Comments from '@/components/Comments';
 import Reactions from '@/components/Reactions';
-import { Gist } from '@/types'; // Adjust this path based on where your Gist interface is stored
 
-interface GistPageProps {
-  params: { id: string };
-}
-
-export default function GistPage({ params: { id } }: GistPageProps) {
-  const [gist, setGist] = useState<Gist | null>(null);
+export default function GistPage({ params: { id } }: { params: { id: string } }) {
+  const [gist, setGist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     const fetchGist = async () => {
-      try {
-        const docSnap = await getDoc(doc(db, 'gists', id));
-        if (docSnap.exists()) {
-          setGist({
-            id: docSnap.id,
-            ...(docSnap.data() as Omit<Gist, 'id'>),
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching gist:', err);
-      } finally {
-        setLoading(false);
+      const docSnap = await getDoc(doc(db, 'gists', id));
+      if (docSnap.exists()) {
+        setGist({ id: docSnap.id, ...docSnap.data() });
       }
+      setLoading(false);
     };
 
     fetchGist();
   }, [id]);
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this gist?');
-    if (!confirmDelete) return;
+    const confirm = window.confirm('Are you sure you want to delete this gist?');
+    if (!confirm) return;
 
     await deleteDoc(doc(db, 'gists', id));
     router.push('/dashboard');
@@ -50,12 +37,12 @@ export default function GistPage({ params: { id } }: GistPageProps) {
   if (loading) return <p className="p-6 text-center">Loading...</p>;
   if (!gist) return <p className="p-6 text-center">Gist not found 🧐</p>;
 
-  const formattedDate = new Date(gist.createdAt.seconds * 1000).toLocaleString();
-
   return (
     <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
       <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
-      <p className="text-gray-500 text-sm">{formattedDate}</p>
+      <p className="text-gray-500 text-sm">
+        {new Date(gist.createdAt?.toDate?.()).toLocaleString()}
+      </p>
 
       {gist.mediaUrl && (
         <div className="max-h-96 overflow-hidden rounded">

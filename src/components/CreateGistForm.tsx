@@ -7,13 +7,8 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { User } from '@/types'; // ✅ import correct type
 
-interface CreateGistFormProps {
-  user: User;
-}
-
-export default function CreateGistForm({ user }: CreateGistFormProps) {
+export default function CreateGistForm({ user }: { user: any }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('Twitter');
@@ -35,30 +30,23 @@ export default function CreateGistForm({ user }: CreateGistFormProps) {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      let mediaUrl = '';
-      if (media) {
-        const storageRef = ref(storage, `media/${Date.now()}-${media.name}`);
-        await uploadBytes(storageRef, media);
-        mediaUrl = await getDownloadURL(storageRef);
-      }
-
-      await addDoc(collection(db, 'gists'), {
-        title,
-        content,
-        category,
-        mediaUrl,
-        authorId: user.uid,
-        createdAt: serverTimestamp(),
-      });
-
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error creating gist:', error);
-      // You can optionally display an error message here
-    } finally {
-      setLoading(false);
+    let mediaUrl = '';
+    if (media) {
+      const storageRef = ref(storage, `media/${Date.now()}-${media.name}`);
+      await uploadBytes(storageRef, media);
+      mediaUrl = await getDownloadURL(storageRef);
     }
+
+    await addDoc(collection(db, 'gists'), {
+      title,
+      content,
+      category,
+      mediaUrl,
+      authorId: user.uid,
+      createdAt: serverTimestamp(),
+    });
+
+    router.push('/dashboard');
   };
 
   return (
