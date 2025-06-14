@@ -18,7 +18,8 @@ export default function WriterCreatePage() {
 
   return (
     <main className="px-4 py-6">
-        <CreateGistForm user={user} />
+      {/* Remove user prop here */}
+      <CreateGistForm />
     </main>
   );
 }

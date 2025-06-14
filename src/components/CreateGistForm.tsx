@@ -53,7 +53,7 @@ export default function CreateGistForm() {
         authorName: user.displayName || 'Anonymous',
       });
 
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
       console.error('Error creating gist:', err);
     } finally {
