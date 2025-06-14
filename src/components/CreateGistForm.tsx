@@ -21,9 +21,7 @@ export default function CreateGistForm() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [blocks, setBlocks] = useState<ContentBlock[]>([
-    { heading: '', body: '' },
-  ]);
+  const [blocks, setBlocks] = useState<ContentBlock[]>([{ heading: '', body: '' }]);
   const [loading, setLoading] = useState(false);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
 
@@ -31,9 +29,9 @@ export default function CreateGistForm() {
 
   useEffect(() => {
     if (!quill) return;
-  
+
     quill.root.setAttribute('spellcheck', 'false');
-  
+
     const handler = () => {
       setBlocks(prev =>
         prev.map((b, idx) =>
@@ -41,19 +39,19 @@ export default function CreateGistForm() {
         )
       );
     };
-  
+
     quill.on('text-change', handler);
-  
+
     return () => {
-      quill.off('text-change', handler); // clean up
+      quill.off('text-change', handler);
     };
   }, [quill, activeBlockIndex]);
-  
+
   useEffect(() => {
     if (quill && blocks[activeBlockIndex]) {
       quill.root.innerHTML = blocks[activeBlockIndex].body || '';
     }
-  }, [activeBlockIndex]);
+  }, [quill, blocks, activeBlockIndex]);
 
   const handleBlockHeadingChange = (idx: number, value: string) => {
     const newBlocks = [...blocks];
@@ -140,27 +138,21 @@ export default function CreateGistForm() {
         <div className="flex flex-col space-y-6">
           {blocks.map((block, idx) => (
             <div key={idx} className="p-4 border rounded bg-gray-50">
-              <label className="block font-medium mb-1">
-                Block Heading
-              </label>
+              <label className="block font-medium mb-1">Block Heading</label>
               <input
                 type="text"
                 value={block.heading}
                 onChange={(e) => handleBlockHeadingChange(idx, e.target.value)}
                 className="w-full border px-3 py-2 rounded mb-3"
-                placeholder={`e.g., What Happened?`}
+                placeholder="e.g., What Happened?"
               />
 
-              {activeBlockIndex === idx && (
+              {activeBlockIndex === idx ? (
                 <>
-                  <label className="block font-medium mb-1">
-                    Block Content
-                  </label>
+                  <label className="block font-medium mb-1">Block Content</label>
                   <div ref={quillRef} className="bg-white border rounded h-48" />
                 </>
-              )}
-
-              {activeBlockIndex !== idx && (
+              ) : (
                 <button
                   type="button"
                   className="text-indigo-600 underline mt-2"

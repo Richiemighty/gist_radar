@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,20 +10,25 @@ import type { Gist } from '@/app/types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 
-export default function GistDetails({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params); // ✅ unwrap param promise
+interface GistDetailsProps {
+  params: { id: string };
+}
+
+export default function GistDetails({ params }: GistDetailsProps) {
+  const { id } = params;
   const [gist, setGist] = useState<Gist | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    (async () => {
+    const fetchGist = async () => {
       const snap = await getDoc(doc(db, 'gists', id));
       if (snap.exists()) {
         setGist({ id: snap.id, ...(snap.data() as any) });
       }
       setLoading(false);
-    })();
+    };
+    fetchGist();
   }, [id]);
 
   const handleDelete = async () => {
@@ -39,7 +43,6 @@ export default function GistDetails({ params }: { params: Promise<{ id: string }
   return (
     <RequireAuth>
       <main className="min-h-screen bg-white font-inter px-4 py-8 lg:px-20">
-        {/* 🔵 Cover Image */}
         {gist.coverUrl && (
           <div className="mb-6">
             <Image
@@ -52,7 +55,6 @@ export default function GistDetails({ params }: { params: Promise<{ id: string }
           </div>
         )}
 
-        {/* 🔵 Title & Date */}
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">{gist.title}</h1>
           <p className="text-gray-500">
@@ -60,7 +62,6 @@ export default function GistDetails({ params }: { params: Promise<{ id: string }
           </p>
         </header>
 
-        {/* 🔵 Embed Preview */}
         {gist.embedLink && (
           <div className="bg-gray-900 text-white rounded-lg p-4 mb-8 grid grid-cols-[auto,1fr] gap-4 items-start">
             <Image src="/profile-placeholder.png" alt="Profile" width={48} height={48} className="rounded-full" />
@@ -79,7 +80,6 @@ export default function GistDetails({ params }: { params: Promise<{ id: string }
           </div>
         )}
 
-        {/* 🔵 Render Blocks */}
         <article className="space-y-12">
           {gist.blocks?.map((block, index) => (
             <section key={index}>
@@ -92,14 +92,12 @@ export default function GistDetails({ params }: { params: Promise<{ id: string }
           ))}
         </article>
 
-        {/* 🔵 Divider & Actions */}
         <hr className="my-8" />
         <div className="flex justify-between items-center">
           <Reactions gistId={id} />
           <button onClick={handleDelete} className="text-red-500 hover:underline">Delete</button>
         </div>
 
-        {/* 🔵 Comments */}
         <Comments gistId={id} />
       </main>
     </RequireAuth>
