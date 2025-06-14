@@ -1,77 +1,87 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
   const { user } = useAuth();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      router.push('/');
-    }
+    if (user) router.push('/');
   }, [user, router]);
 
-  // Use React.FormEvent type for form submit event
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
-    } catch (err) {
-      // Type error as unknown and narrow it to AuthError for safer typing
-      const error = err as AuthError;
-      setError(error.message || 'Failed to login');
+    } catch (err: any) {
+      setError(err.message ?? 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
-  if (user) {
-    return <p className="text-center mt-10">Redirecting…</p>;
-  }
+  if (user) return <p className="text-center mt-20">Logging you in…</p>;
 
   return (
-    <main className="max-w-md mx-auto p-6 bg-white rounded shadow mt-20">
-      <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg animate-fade-in space-y-6"
+      >
+        <h1 className="text-3xl font-bold text-indigo-700 text-center">Welcome Back</h1>
+        {error && (
+          <div className="text-red-600 text-sm text-center">{error}</div>
+        )}
+
         <input
           type="email"
-          placeholder="Email"
+          name="email"
+          autoComplete="email"
+          placeholder="Email address"
           value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
-          onChange={e => setEmail(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
+          className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
         />
         <input
           type="password"
+          name="current-password"
+          autoComplete="current-password"
           placeholder="Password"
           value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
-          onChange={e => setPassword(e.target.value)}
-          className="w-full px-4 py-2 border rounded"
+          className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
         />
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
+          className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
+
+        <p className="text-center text-sm text-gray-500">
+          Don’t have an account?{' '}
+          <Link href="/signup" className="text-indigo-600 hover:text-indigo-800 font-medium">
+            Sign Up
+          </Link>
+        </p>
       </form>
-    </main>
+    </div>
   );
 }

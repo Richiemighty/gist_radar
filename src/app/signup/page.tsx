@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { auth, db } from '@/lib/firebase';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SignupPage() {
   const [username, setUsername] = useState('');
@@ -16,71 +17,64 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
     try {
-      // ✅ Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // ✅ Store additional user data in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        username,
-        email: user.email,
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        username: username.trim(),
+        email: cred.user.email,
         role: 'gistlover',
         createdAt: serverTimestamp(),
         savedGists: [],
       });
-
-      // ✅ Redirect to dashboard
-      router.push('/');
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Something went wrong');
-      }
-    }    
+      router.push('/login');
+    } catch (err: any) {
+      setError(err.message ?? 'Signup failed');
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <form onSubmit={handleSignup} className="w-full max-w-sm p-6 border rounded shadow-md transition duration-300 ease-in-out hover:shadow-lg">
-        <h2 className="text-xl font-semibold mb-4 text-center text-indigo-600">Sign Up to GistRadar</h2>
-        {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+      <form
+        onSubmit={handleSignup}
+        className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg animate-fade-in space-y-6"
+        autoComplete="off"
+      >
+        <h2 className="text-3xl font-bold text-indigo-700 text-center">Create Account</h2>
+        {error && (
+          <div className="text-red-600 text-sm text-center">{error}</div>
+        )}
 
-        <input
-          type="text"
-          placeholder="Username"
-          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        {[
+          { type: 'text', placeholder: 'Username', state: username, setter: setUsername, autoComplete: 'username' },
+          { type: 'email', placeholder: 'Email', state: email, setter: setEmail, autoComplete: 'email' },
+          { type: 'password', placeholder: 'Password', state: password, setter: setPassword, autoComplete: 'new-password' },
+        ].map((field) => (
+          <input
+            key={field.placeholder}
+            type={field.type}
+            name={field.autoComplete}
+            autoComplete={field.autoComplete}
+            placeholder={field.placeholder}
+            value={field.state}
+            onChange={(e) => field.setter(e.target.value)}
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+          />
+        ))}
 
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700 transition duration-200"
+          className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
         >
           Sign Up
         </button>
+
+        <p className="text-center text-sm text-gray-500">
+          Already have an account?{' '}
+          <Link href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
+            Sign In
+          </Link>
+        </p>
       </form>
     </div>
   );
