@@ -4,16 +4,18 @@ import { useEffect, useState } from 'react';
 import { fetchGists } from '@/lib/api';
 import GistCard from '@/components/GistCard';
 import { useAuth } from '@/context/AuthContext';
+import type { Gist } from '@/app/types';
+
 
 const categories = ['All', 'Twitter', 'TikTok', 'Instagram', 'Education', 'Politics'];
 
-interface Gist {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  // Add more fields if needed
-}
+// interface Gist {
+//   id: string;
+//   title: string;
+//   content: string;
+//   category: string;
+//   // Add more fields if needed
+// }
 
 export default function Home() {
   const { user } = useAuth();

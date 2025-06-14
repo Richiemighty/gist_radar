@@ -47,11 +47,17 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   return (
     <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
       <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
-      <p className="text-gray-500 text-sm">
+      {/* <p className="text-gray-500 text-sm">
         {gist.createdAt?.toDate
           ? new Date(gist.createdAt.toDate()).toLocaleString()
           : new Date(gist.createdAt).toLocaleString()}
+      </p> */}
+      <p className="text-gray-500 text-sm">
+        {gist.createdAt instanceof Object && 'toDate' in gist.createdAt
+          ? gist.createdAt.toDate().toLocaleString()
+          : 'Unknown date'}
       </p>
+
 
       {gist.mediaUrl && (
         <div className="max-h-96 overflow-hidden rounded">

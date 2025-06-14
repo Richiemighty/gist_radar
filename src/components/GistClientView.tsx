@@ -12,9 +12,9 @@ export default function GistClientView({ gist, id }: { gist: Gist; id: string })
       <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
         <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
         <p className="text-gray-500 text-sm">
-          {gist.createdAt?.toDate
-            ? new Date(gist.createdAt.toDate()).toLocaleString()
-            : new Date(gist.createdAt).toLocaleString()}
+          {gist.createdAt
+            ? gist.createdAt.toDate().toLocaleString()  // convert Timestamp -> Date -> string
+            : 'Unknown date'}
         </p>
 
         {gist.mediaUrl && (

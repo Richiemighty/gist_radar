@@ -32,11 +32,14 @@ export default function SignupPage() {
       });
 
       // ✅ Redirect to dashboard
-      router.push('/dashboard');
-    } catch (err: any) {
-      console.error('Signup Error:', err);
-      setError(err.message || 'Something went wrong');
-    }
+      router.push('/');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Something went wrong');
+      }
+    }    
   };
 
   return (

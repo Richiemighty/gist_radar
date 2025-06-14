@@ -1,11 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db, auth } from '@/lib/firebase';
-import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 
-interface Comment { id: string; user: string; text: string; createdAt: any; }
+interface Comment {
+  id: string;
+  user: string | null;
+  text: string;
+  createdAt: Timestamp | null;  // <-- specify Timestamp type
+}
 
 export default function Comments({ gistId }: { gistId: string }) {
   const { user } = useAuth();
@@ -18,7 +23,12 @@ export default function Comments({ gistId }: { gistId: string }) {
       where('gistId', '==', gistId),
       orderBy('createdAt', 'asc')
     );
-    return onSnapshot(q, snap => setComments(snap.docs.map(d => ({ id: d.id, ...d.data() }) as Comment)));
+
+    return onSnapshot(q, snap => 
+      setComments(
+        snap.docs.map(d => ({ id: d.id, ...d.data() }) as Comment)
+      )
+    );
   }, [gistId]);
 
   const handleComment = async (e: React.FormEvent) => {
@@ -39,7 +49,7 @@ export default function Comments({ gistId }: { gistId: string }) {
       {comments.map(c => (
         <div key={c.id} className="border-b pb-2">
           <p className="text-sm text-gray-600">
-            <strong>{c.user}</strong> · {new Date(c.createdAt.toDate()).toLocaleString()}
+            <strong>{c.user}</strong> · {c.createdAt ? new Date(c.createdAt.toDate()).toLocaleString() : 'Just now'}
           </p>
           <p>{c.text}</p>
         </div>

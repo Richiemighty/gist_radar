@@ -3,13 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, deleteDoc, doc, QueryDocumentSnapshot, DocumentData, Timestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { Gist } from '@/app/types';
+// import type { Timestamp } from 'firebase/firestore';
+
 
 export default function WriterDashboard() {
   const { user } = useAuth();
-  const [gists, setGists] = useState<any[]>([]);
+  const [gists, setGists] = useState<Gist[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -25,7 +28,17 @@ export default function WriterDashboard() {
         orderBy('createdAt', 'desc')
       );
       const snapshot = await getDocs(q);
-      setGists(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+      // Map docs to Gist, convert createdAt from Timestamp to Date for safer usage
+      const gistsData: Gist[] = snapshot.docs.map(doc => {
+        const data = doc.data() as Omit<Gist, 'id'>;
+        return {
+          id: doc.id,
+          ...data,
+        };
+      });
+      
+      setGists(gistsData);
       setLoading(false);
     };
 
@@ -58,7 +71,9 @@ export default function WriterDashboard() {
             <div key={g.id} className="p-4 bg-white shadow rounded flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold">{g.title}</h2>
-                <p className="text-sm text-gray-500">{g.category} • {new Date(g.createdAt?.toDate()).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500">
+                  {g.category} • {g.createdAt ? g.createdAt.toDate().toLocaleDateString() : 'Unknown Date'}
+                </p>
               </div>
               <div className="space-x-2">
                 <Link
