@@ -22,12 +22,33 @@ export default function GistDetails({ params }: GistDetailsProps) {
 
   useEffect(() => {
     const fetchGist = async () => {
-      const snap = await getDoc(doc(db, 'gists', id));
-      if (snap.exists()) {
-        setGist({ id: snap.id, ...(snap.data() as any) });
+      try {
+        const snap = await getDoc(doc(db, 'gists', id));
+        if (snap.exists()) {
+          const data = snap.data();
+
+          // ✅ Apply explicit typing
+          const typedGist: Gist = {
+            id: snap.id,
+            title: data.title,
+            category: data.category,
+            coverUrl: data.coverUrl,
+            embedLink: data.embedLink,
+            blocks: data.blocks,
+            createdAt: data.createdAt,
+            authorId: data.authorId,
+            authorName: data.authorName,
+          };
+
+          setGist(typedGist);
+        }
+      } catch (error) {
+        console.error('Error fetching gist:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchGist();
   }, [id]);
 
@@ -43,6 +64,7 @@ export default function GistDetails({ params }: GistDetailsProps) {
   return (
     <RequireAuth>
       <main className="min-h-screen bg-white font-inter px-4 py-8 lg:px-20">
+        {/* Cover Image */}
         {gist.coverUrl && (
           <div className="mb-6">
             <Image
@@ -55,6 +77,7 @@ export default function GistDetails({ params }: GistDetailsProps) {
           </div>
         )}
 
+        {/* Title & Date */}
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">{gist.title}</h1>
           <p className="text-gray-500">
@@ -62,6 +85,7 @@ export default function GistDetails({ params }: GistDetailsProps) {
           </p>
         </header>
 
+        {/* Embed Preview */}
         {gist.embedLink && (
           <div className="bg-gray-900 text-white rounded-lg p-4 mb-8 grid grid-cols-[auto,1fr] gap-4 items-start">
             <Image src="/profile-placeholder.png" alt="Profile" width={48} height={48} className="rounded-full" />
@@ -80,6 +104,7 @@ export default function GistDetails({ params }: GistDetailsProps) {
           </div>
         )}
 
+        {/* Render Blocks */}
         <article className="space-y-12">
           {gist.blocks?.map((block, index) => (
             <section key={index}>
@@ -92,12 +117,14 @@ export default function GistDetails({ params }: GistDetailsProps) {
           ))}
         </article>
 
+        {/* Divider & Actions */}
         <hr className="my-8" />
         <div className="flex justify-between items-center">
           <Reactions gistId={id} />
           <button onClick={handleDelete} className="text-red-500 hover:underline">Delete</button>
         </div>
 
+        {/* Comments */}
         <Comments gistId={id} />
       </main>
     </RequireAuth>
