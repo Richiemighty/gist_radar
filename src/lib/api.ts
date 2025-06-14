@@ -1,25 +1,8 @@
-// lib/api.ts
-import { db } from './firebase';
+import type { Gist } from '@/app/types'; // or wherever your interface is defined
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-// import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase'; // Adjust import path as needed
 
-
-// export async function fetchGists(category?: string) {
-//   let q = query(
-//     collection(db, 'gists'),
-//     orderBy('createdAt', 'desc'),
-//   );
-//   if (category && category !== 'All') {
-//     q = query(q, where('category', '==', category));
-//   }
-//   const snap = await getDocs(q);
-//   return snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-// }
-
-// import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
-// import { db } from './firebase';
-
-export async function fetchGists(category: string) {
+export async function fetchGists(category: string): Promise<Gist[]> {
   let q;
 
   if (category === 'All') {
@@ -33,5 +16,8 @@ export async function fetchGists(category: string) {
   }
 
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  return snapshot.docs.map(doc => {
+    const data = doc.data() as Omit<Gist, 'id'>; // Cast doc.data() to Gist without id
+    return { id: doc.id, ...data };
+  });
 }

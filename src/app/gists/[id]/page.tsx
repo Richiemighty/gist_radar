@@ -8,10 +8,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Comments from '@/components/Comments';
 import Reactions from '@/components/Reactions';
+import type { Gist } from '@/app/types';  // <-- import your Gist type
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params); // ✅ unwrap the params Promise
-  const [gist, setGist] = useState<any>(null);
+  const { id } = use(params);
+  const [gist, setGist] = useState<Gist | null>(null);  // <-- typed state instead of any
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
@@ -20,7 +21,11 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const fetchGist = async () => {
       const docSnap = await getDoc(doc(db, 'gists', id));
       if (docSnap.exists()) {
-        setGist({ id: docSnap.id, ...docSnap.data() });
+        // Type assertion to Gist (except createdAt might need special handling)
+        const data = docSnap.data() as Omit<Gist, 'id'>;
+        setGist({ id: docSnap.id, ...data });
+      } else {
+        setGist(null);
       }
       setLoading(false);
     };
@@ -29,8 +34,8 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   }, [id]);
 
   const handleDelete = async () => {
-    const confirm = window.confirm('Are you sure you want to delete this gist?');
-    if (!confirm) return;
+    const confirmDelete = window.confirm('Are you sure you want to delete this gist?');
+    if (!confirmDelete) return;
 
     await deleteDoc(doc(db, 'gists', id));
     router.push('/dashboard');
@@ -43,7 +48,9 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
       <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
       <p className="text-gray-500 text-sm">
-        {new Date(gist.createdAt?.toDate?.()).toLocaleString()}
+        {gist.createdAt?.toDate
+          ? new Date(gist.createdAt.toDate()).toLocaleString()
+          : new Date(gist.createdAt).toLocaleString()}
       </p>
 
       {gist.mediaUrl && (
@@ -76,7 +83,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         </span>
       </div>
 
-      {/* 🔥 Delete button visible only to the author */}
       {user?.uid === gist.authorId && (
         <button
           onClick={handleDelete}

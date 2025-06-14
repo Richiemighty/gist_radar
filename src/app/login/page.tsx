@@ -1,53 +1,76 @@
 'use client';
 
-import { useState } from 'react';
-import { auth } from '@/lib/firebase';
+import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Redirect logged-in users safely after component mounts
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError(null);
+    setLoading(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/'); // redirect to dashboard after login
+      router.push('/');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to login');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Optionally show a loading state while redirecting
+  if (user) {
+    return <p className="text-center mt-10">Redirecting…</p>;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <form onSubmit={handleLogin} className="w-full max-w-sm p-6 border rounded shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-center">Login to GistRadar</h2>
-        {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
+    <main className="max-w-md mx-auto p-6 bg-white rounded shadow mt-20">
+      <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
           placeholder="Email"
-          className="w-full mb-3 p-2 border rounded"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
+          onChange={e => setEmail(e.target.value)}
+          className="w-full px-4 py-2 border rounded"
         />
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-3 p-2 border rounded"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
           required
+          onChange={e => setPassword(e.target.value)}
+          className="w-full px-4 py-2 border rounded"
         />
-        <button type="submit" className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">
-          Log In
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-    </div>
+    </main>
   );
 }

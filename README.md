@@ -34,3 +34,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+
+
+
+| File                                | Line | Error                                      |
+| ----------------------------------- | ---- | ------------------------------------------ |
+| `src/app/gists/[id]/page.tsx`       | 14   | Unexpected any                             |
+| `src/app/login/page.tsx`            | 21   | Unexpected any                             |
+| `src/app/page.tsx`                  | 14   | Unexpected any                             |
+| `src/app/profile/page.tsx`          | 11   | Unexpected any                             |
+| `src/app/signup/page.tsx`           | 36   | Unexpected any                             |
+| `src/app/writer/dashboard/page.tsx` | 12   | Unexpected any                             |
+| `src/components/Comments.tsx`       | 8    | Unexpected any                             |
+| `src/components/GistCard.tsx`       | 7    | Unexpected any (two occurrences on line 7) |
+| `src/components/GistClientView.tsx` | 7    | Unexpected any                             |

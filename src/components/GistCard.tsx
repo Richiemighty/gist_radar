@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useSaveGist } from '@/hooks/useSaveGist';
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image';
 
 export default function GistCard({ gist, user }: { gist: any; user: any }) {
   const { isSaved, toggleSave } = useSaveGist(gist.id);
@@ -14,7 +15,7 @@ export default function GistCard({ gist, user }: { gist: any; user: any }) {
           {gist.mediaUrl.endsWith('.mp4') ? (
             <video src={gist.mediaUrl} controls className="w-full h-full object-cover" />
           ) : (
-            <img src={gist.mediaUrl} alt={gist.title} className="w-full h-full object-cover" />
+            <Image src={gist.mediaUrl} alt={gist.title} width={500} height={300}  className="w-full h-full object-cover" />
           )}
         </div>
       )}
