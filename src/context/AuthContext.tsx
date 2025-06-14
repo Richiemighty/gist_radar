@@ -10,6 +10,8 @@ type CustomUser = {
   uid: string;
   email: string | null;
   role: 'writer' | 'gistlover';
+  displayName?: string; // make it optional if not always present
+
 };
 
 const AuthContext = createContext<{ user: CustomUser | null }>({ user: null });

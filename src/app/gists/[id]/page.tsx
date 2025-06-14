@@ -1,6 +1,7 @@
 'use client';
 
 import { db } from '@/lib/firebase';
+import { use } from 'react';
 import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,7 +9,8 @@ import { useAuth } from '@/context/AuthContext';
 import Comments from '@/components/Comments';
 import Reactions from '@/components/Reactions';
 
-export default function GistPage({ params: { id } }: { params: { id: string } }) {
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params); // ✅ unwrap the params Promise
   const [gist, setGist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
