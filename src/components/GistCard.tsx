@@ -10,7 +10,7 @@ export default function GistCard({
   user,
 }: {
   gist: Gist;
-  user: { uid: string } | null; // adjust based on your AuthContext user type
+  user: { uid: string } | null;
 }) {
   const { isSaved, toggleSave } = useSaveGist(gist.id);
 
@@ -35,7 +35,12 @@ export default function GistCard({
       <div className="p-4">
         <h2 className="text-lg font-semibold text-indigo-700">{gist.title}</h2>
         <p className="text-gray-600 text-sm mb-2">{gist.category}</p>
-        <p className="text-gray-700 text-sm line-clamp-3">{gist.content}</p>
+
+        {/* Safely render HTML content */}
+        <div
+          className="text-gray-700 text-sm line-clamp-3"
+          dangerouslySetInnerHTML={{ __html: gist.content }}
+        />
 
         <div className="mt-3 flex justify-between items-center">
           <Link href={`/gists/${gist.id}`} className="text-indigo-600 text-sm hover:underline">

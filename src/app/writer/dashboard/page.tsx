@@ -7,8 +7,6 @@ import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'fire
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Gist } from '@/app/types';
-// import type { Timestamp } from 'firebase/firestore';
-
 
 export default function WriterDashboard() {
   const { user } = useAuth();
@@ -28,8 +26,6 @@ export default function WriterDashboard() {
         orderBy('createdAt', 'desc')
       );
       const snapshot = await getDocs(q);
-
-      // Map docs to Gist, convert createdAt from Timestamp to Date for safer usage
       const gistsData: Gist[] = snapshot.docs.map(doc => {
         const data = doc.data() as Omit<Gist, 'id'>;
         return {
@@ -37,7 +33,6 @@ export default function WriterDashboard() {
           ...data,
         };
       });
-      
       setGists(gistsData);
       setLoading(false);
     };
@@ -51,48 +46,59 @@ export default function WriterDashboard() {
     setGists(prev => prev.filter(g => g.id !== id));
   };
 
-  if (loading) return <p className="p-6 text-center">Loading your gists…</p>;
-
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-indigo-600 mb-4">Your Gists</h1>
-      <Link
-        href="/writer/create"
-        className="inline-block mb-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-      >
-        + New Gist
-      </Link>
-
-      {gists.length === 0 ? (
-        <p>You have no gists yet. Click “New Gist” to get started.</p>
-      ) : (
-        <div className="space-y-4">
-          {gists.map(g => (
-            <div key={g.id} className="p-4 bg-white shadow rounded flex justify-between items-center">
-              <div>
-                <h2 className="text-lg font-semibold">{g.title}</h2>
-                <p className="text-sm text-gray-500">
-                  {g.category} • {g.createdAt ? g.createdAt.toDate().toLocaleDateString() : 'Unknown Date'}
-                </p>
-              </div>
-              <div className="space-x-2">
-                <Link
-                  href={`/writer/edit/${g.id}`}
-                  className="text-indigo-600 hover:underline"
-                >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handleDelete(g.id)}
-                  className="text-red-500 hover:underline"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+    <main className="min-h-screen bg-white px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <h1 className="text-3xl font-bold text-indigo-700 transition-all">Your Gists</h1>
+          <Link
+            href="/writer/create"
+            className="inline-block px-5 py-2.5 bg-indigo-600 text-white rounded shadow hover:bg-indigo-700 transition duration-300 ease-in-out"
+          >
+            + New Gist
+          </Link>
         </div>
-      )}
+
+        {loading ? (
+          <p className="text-center text-gray-500 animate-pulse">Loading your gists…</p>
+        ) : gists.length === 0 ? (
+          <div className="text-center mt-10">
+            <p className="text-gray-500">You have no gists yet.</p>
+            <p className="text-sm text-gray-400">Click “New Gist” to get started.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {gists.map(g => (
+              <div
+                key={g.id}
+                className="p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition duration-300 ease-in-out flex flex-col sm:flex-row justify-between items-start sm:items-center"
+              >
+                <div className="mb-2 sm:mb-0">
+                  <h2 className="text-xl font-medium text-gray-800">{g.title}</h2>
+                  <p className="text-sm text-gray-500">
+                    {g.category} •{' '}
+                    {g.createdAt ? g.createdAt.toDate().toLocaleDateString() : 'Unknown Date'}
+                  </p>
+                </div>
+                <div className="flex gap-4 text-sm font-medium">
+                  <Link
+                    href={`/writer/edit/${g.id}`}
+                    className="text-indigo-600 hover:text-indigo-800 transition"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(g.id)}
+                    className="text-red-500 hover:text-red-700 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
