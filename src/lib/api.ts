@@ -21,7 +21,7 @@ import { Gist } from '@/types';
 // import { db } from './firebase';
 
 export async function fetchGists(category: string): Promise<Gist[]> {
-    let q;
+  let q;
 
   if (category === 'All') {
     q = query(collection(db, 'gists'), orderBy('createdAt', 'desc'));

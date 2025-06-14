@@ -1,93 +1,83 @@
 'use client';
 
-import { db } from '@/lib/firebase';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Comments from '@/components/Comments';
-import Reactions from '@/components/Reactions';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
-export default function GistPage({ params: { id } }: { params: { id: string } }) {
-  const [gist, setGist] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export default function WriterDashboard() {
   const { user } = useAuth();
+  const [gists, setGists] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchGist = async () => {
-      const docSnap = await getDoc(doc(db, 'gists', id));
-      if (docSnap.exists()) {
-        setGist({ id: docSnap.id, ...docSnap.data() });
-      }
+    if (!user) return router.push('/');
+    if (user.role !== 'writer') return router.push('/');
+
+    const fetchGists = async () => {
+      setLoading(true);
+      const q = query(
+        collection(db, 'gists'),
+        where('createdBy', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      setGists(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
     };
 
-    fetchGist();
-  }, [id]);
+    fetchGists();
+  }, [user, router]);
 
-  const handleDelete = async () => {
-    const confirm = window.confirm('Are you sure you want to delete this gist?');
-    if (!confirm) return;
-
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this gist permanently?')) return;
     await deleteDoc(doc(db, 'gists', id));
-    router.push('/dashboard');
+    setGists(prev => prev.filter(g => g.id !== id));
   };
 
-  if (loading) return <p className="p-6 text-center">Loading...</p>;
-  if (!gist) return <p className="p-6 text-center">Gist not found 🧐</p>;
+  if (loading) return <p className="p-6 text-center">Loading your gists…</p>;
 
   return (
-    <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
-      <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
-      <p className="text-gray-500 text-sm">
-        {new Date(gist.createdAt?.toDate?.()).toLocaleString()}
-      </p>
+    <main className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold text-indigo-600 mb-4">Your Gists</h1>
+      <Link
+        href="/writer/create"
+        className="inline-block mb-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+      >
+        + New Gist
+      </Link>
 
-      {gist.mediaUrl && (
-        <div className="max-h-96 overflow-hidden rounded">
-          {gist.mediaUrl.endsWith('.mp4') ? (
-            <video src={gist.mediaUrl} controls className="w-full" />
-          ) : (
-            <img src={gist.mediaUrl} alt={gist.title} className="object-cover w-full" />
-          )}
+      {gists.length === 0 ? (
+        <p>You have no gists yet. Click “New Gist” to get started.</p>
+      ) : (
+        <div className="space-y-4">
+          {gists.map(g => (
+            <div key={g.id} className="p-4 bg-white shadow rounded flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-semibold">{g.title}</h2>
+                <p className="text-sm text-gray-500">{g.category} • {new Date(g.createdAt?.toDate()).toLocaleDateString()}</p>
+              </div>
+              <div className="space-x-2">
+                <Link
+                  href={`/writer/edit/${g.id}`}
+                  className="text-indigo-600 hover:underline"
+                >
+                  Edit
+                </Link>
+                <button
+                  onClick={() => handleDelete(g.id)}
+                  className="text-red-500 hover:underline"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
-
-      {gist.embedLink && (
-        <div className="aspect-video mb-4">
-          <iframe
-            src={gist.embedLink}
-            className="w-full h-full"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      )}
-
-      <div className="prose prose-indigo">{gist.content}</div>
-
-      <div>
-        <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded">
-          {gist.category}
-        </span>
-      </div>
-
-      {/* 🔥 Delete button visible only to the author */}
-      {user?.uid === gist.authorId && (
-        <button
-          onClick={handleDelete}
-          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-        >
-          Delete Gist
-        </button>
-      )}
-
-      <hr />
-      <Reactions gistId={id} />
-      <hr />
-      <Comments gistId={id} />
     </main>
   );
 }

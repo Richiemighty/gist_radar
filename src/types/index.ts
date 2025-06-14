@@ -10,6 +10,7 @@ export interface Gist {
       seconds: number;
       nanoseconds: number;
     }; // 🔁 removed `?`
+    authorId?: string;
   }
   
   
