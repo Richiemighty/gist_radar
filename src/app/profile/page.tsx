@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import GistCard from '@/components/GistCard';
+import type { Gist } from '@/app/types';
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const [savedGists, setSavedGists] = useState<any[]>([]);
+
+  // Use typed state with Gist[] instead of any[]
+  const [savedGists, setSavedGists] = useState<Gist[]>([]);
 
   useEffect(() => {
     const fetchSaved = async () => {
@@ -18,7 +21,12 @@ export default function ProfilePage() {
         where('userId', '==', user.uid)
       );
       const snapshot = await getDocs(q);
-      const saved = snapshot.docs.map(doc => doc.data().gist);
+
+      // Explicitly cast doc.data() to DocumentData, then extract gist and cast to Gist
+      const saved = snapshot.docs
+        .map(doc => doc.data() as DocumentData)
+        .map(data => data.gist as Gist);
+
       setSavedGists(saved);
     };
 

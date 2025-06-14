@@ -8,11 +8,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Comments from '@/components/Comments';
 import Reactions from '@/components/Reactions';
-import type { Gist } from '@/app/types';  // <-- import your Gist type
+import Image from 'next/image';
+import type { Gist } from '@/app/types';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [gist, setGist] = useState<Gist | null>(null);  // <-- typed state instead of any
+  const [gist, setGist] = useState<Gist | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
@@ -21,7 +22,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     const fetchGist = async () => {
       const docSnap = await getDoc(doc(db, 'gists', id));
       if (docSnap.exists()) {
-        // Type assertion to Gist (except createdAt might need special handling)
         const data = docSnap.data() as Omit<Gist, 'id'>;
         setGist({ id: docSnap.id, ...data });
       } else {
@@ -44,27 +44,32 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   if (loading) return <p className="p-6 text-center">Loading...</p>;
   if (!gist) return <p className="p-6 text-center">Gist not found 🧐</p>;
 
+  // Helper to parse createdAt timestamp safely
+  const createdAtDate =
+    gist.createdAt && typeof gist.createdAt === 'object' && 'toDate' in gist.createdAt
+      ? gist.createdAt.toDate()
+      : null;
+
   return (
     <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
       <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
-      {/* <p className="text-gray-500 text-sm">
-        {gist.createdAt?.toDate
-          ? new Date(gist.createdAt.toDate()).toLocaleString()
-          : new Date(gist.createdAt).toLocaleString()}
-      </p> */}
       <p className="text-gray-500 text-sm">
-        {gist.createdAt instanceof Object && 'toDate' in gist.createdAt
-          ? gist.createdAt.toDate().toLocaleString()
-          : 'Unknown date'}
+        {createdAtDate ? createdAtDate.toLocaleString() : 'Unknown date'}
       </p>
-
 
       {gist.mediaUrl && (
         <div className="max-h-96 overflow-hidden rounded">
           {gist.mediaUrl.endsWith('.mp4') ? (
             <video src={gist.mediaUrl} controls className="w-full" />
           ) : (
-            <img src={gist.mediaUrl} alt={gist.title} className="object-cover w-full" />
+            <Image
+              src={gist.mediaUrl}
+              alt={gist.title}
+              width={700}
+              height={400}
+              className="object-cover w-full"
+              priority
+            />
           )}
         </div>
       )}

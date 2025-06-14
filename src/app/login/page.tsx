@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -15,14 +15,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Redirect logged-in users safely after component mounts
   useEffect(() => {
     if (user) {
       router.push('/');
     }
   }, [user, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Use React.FormEvent type for form submit event
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -30,14 +30,15 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login');
+    } catch (err) {
+      // Type error as unknown and narrow it to AuthError for safer typing
+      const error = err as AuthError;
+      setError(error.message || 'Failed to login');
     } finally {
       setLoading(false);
     }
   };
 
-  // Optionally show a loading state while redirecting
   if (user) {
     return <p className="text-center mt-10">Redirecting…</p>;
   }
