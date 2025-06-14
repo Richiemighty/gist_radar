@@ -3,6 +3,7 @@ import { db } from './firebase';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 // import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 
+import { Gist } from '@/types';
 
 // export async function fetchGists(category?: string) {
 //   let q = query(
@@ -19,8 +20,8 @@ import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 // import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 // import { db } from './firebase';
 
-export async function fetchGists(category: string) {
-  let q;
+export async function fetchGists(category: string): Promise<Gist[]> {
+    let q;
 
   if (category === 'All') {
     q = query(collection(db, 'gists'), orderBy('createdAt', 'desc'));

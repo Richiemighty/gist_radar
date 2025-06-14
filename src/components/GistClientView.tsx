@@ -3,14 +3,19 @@
 import Comments from '@/components/Comments';
 import Reactions from '@/components/Reactions';
 import RequireAuth from '@/components/RequireAuth';
+import { Gist, User } from '@/types';
 
-export default function GistClientView({ gist, id }: { gist: any; id: string }) {
+interface Props { gist: Gist; user: User | null; }
+
+export default function GistClientView({ gist, user }: Props) {
   return (
     <RequireAuth>
       <main className="max-w-2xl mx-auto bg-white p-6 shadow rounded space-y-4 animate-fadeIn">
         <h1 className="text-2xl font-bold text-indigo-600">{gist.title}</h1>
         <p className="text-gray-500 text-sm">
-          {new Date(gist.createdAt.toDate()).toLocaleString()}
+            {gist.createdAt
+                ? new Date(gist.createdAt.seconds * 1000).toLocaleString()
+                : 'Unknown date'}
         </p>
 
         {gist.mediaUrl && (
@@ -44,9 +49,9 @@ export default function GistClientView({ gist, id }: { gist: any; id: string }) 
         </div>
 
         <hr />
-        <Reactions gistId={id} />
+        <Reactions gistId={gist.id} />
         <hr />
-        <Comments gistId={id} />
+        <Comments gistId={gist.id} />
       </main>
     </RequireAuth>
   );

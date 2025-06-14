@@ -2,24 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { fetchGists } from '@/lib/api';
-// import Link from 'next/link';
 import GistCard from '@/components/GistCard';
 import { useAuth } from '@/context/AuthContext';
+import type { Gist } from '@/types';
 
 const categories = ['All', 'Twitter', 'TikTok', 'Instagram', 'Education', 'Politics'];
 
 export default function Home() {
   const { user } = useAuth();
   const [selected, setSelected] = useState('All');
-  const [gists, setGists] = useState<any[]>([]);
+  const [gists, setGists] = useState<Gist[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  
 
   useEffect(() => {
     setLoading(true);
     fetchGists(selected)
-      .then(setGists)
+      .then((data: Gist[]) => setGists(data))
       .finally(() => setLoading(false));
   }, [selected]);
 

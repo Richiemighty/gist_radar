@@ -7,22 +7,20 @@ import { useRouter } from 'next/navigation';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 export default function SignupPage() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const router = useRouter();
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
     try {
-      // ✅ Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Store additional user data in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         username,
         email: user.email,
@@ -31,17 +29,23 @@ export default function SignupPage() {
         savedGists: [],
       });
 
-      // ✅ Redirect to dashboard
       router.push('/dashboard');
-    } catch (err: any) {
-      console.error('Signup Error:', err);
-      setError(err.message || 'Something went wrong');
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error('Signup Error:', err);
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred.');
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <form onSubmit={handleSignup} className="w-full max-w-sm p-6 border rounded shadow-md transition duration-300 ease-in-out hover:shadow-lg">
+      <form
+        onSubmit={handleSignup}
+        className="w-full max-w-sm p-6 border rounded shadow-md transition duration-300 ease-in-out hover:shadow-lg"
+      >
         <h2 className="text-xl font-semibold mb-4 text-center text-indigo-600">Sign Up to GistRadar</h2>
         {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
 
