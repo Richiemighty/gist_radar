@@ -17,7 +17,7 @@ const firebaseConfig = {
     measurementId: "G-MLZ6Z48JVM"
 };
 
-// Initialize Firebase app
+// Initialize Firebase ap
 const app = initializeApp(firebaseConfig);
 
 // ✅ Add and export auth instance

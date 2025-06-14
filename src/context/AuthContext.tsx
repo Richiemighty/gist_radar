@@ -1,4 +1,3 @@
-// context/AuthContext.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -9,9 +8,10 @@ import { doc, getDoc } from 'firebase/firestore';
 type CustomUser = {
   uid: string;
   email: string | null;
+  username: string; // Add username here (required)
   role: 'writer' | 'gistlover';
-  displayName?: string; // make it optional if not always present
-
+  photoURL?: string | null;
+  displayName?: string | null;
 };
 
 const AuthContext = createContext<{ user: CustomUser | null }>({ user: null });
@@ -24,10 +24,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         const userData = userDoc.exists() ? userDoc.data() : {};
+
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          role: userData.role || 'gistlover', // fallback role
+          username: userData.username || 'User', // <-- Get username from Firestore or fallback
+          role: userData.role || 'gistlover',
+          photoURL: firebaseUser.photoURL || null,
+          
         });
       } else {
         setUser(null);

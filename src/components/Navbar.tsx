@@ -7,14 +7,14 @@ import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { searchGists } from '@/lib/api';
-import type { Gist } from '@/app/types';
+import type { Gist, User } from '@/app/types'; // Make sure User includes username
 import Image from 'next/image';
 
 export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
 
-  // 🔍 Search states
+  // Search state
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Gist[]>([]);
   const [showSearch, setShowSearch] = useState(false);
@@ -48,11 +48,38 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center px-6 py-3 bg-white shadow-md relative z-10">
+    <nav className="">
+      <div className="flex justify-between items-center px-6 py-3 bg-white shadow-md relative z-10">
       <Link href="/" className="text-2xl font-bold text-indigo-600">GistRadar</Link>
 
-      {/* Search bar */}
-      <div ref={sbRef} className="relative w-1/3 max-w-md hidden md:block">
+      {/* User controls */}
+      <div className="flex items-center space-x-4">
+        {!user ? (
+          <>
+            <Link href="/login" className="hover:text-indigo-600 transition">Login</Link>
+            <Link href="/signup" className="hover:text-indigo-600 transition">Signup</Link>
+          </>
+        ) : (
+          <>
+            {user.role === 'writer' && (
+              <Link href="/writer/create"
+                className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition"
+              >Write</Link>
+            )}
+
+            <ProfileMenu user={user} onLogout={handleLogout} />
+          </>
+        )}
+      </div>
+
+      </div>
+            {/* Search bar */}
+      {/* <div ref={sbRef} className="relative w-1/3 max-w-md hidden md:block"> */}
+      <div
+  ref={sbRef}
+  className="relative mx-auto w-4/5 lg:w-[70%] block my-2"
+>
+
         <input
           type="text"
           className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
@@ -80,25 +107,6 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* User controls */}
-      <div className="flex items-center space-x-4">
-        {!user ? (
-          <>
-            <Link href="/login" className="hover:text-indigo-600 transition">Login</Link>
-            <Link href="/signup" className="hover:text-indigo-600 transition">Signup</Link>
-          </>
-        ) : (
-          <>
-            {user.role === 'writer' && (
-              <Link href="/writer/create"
-                className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition"
-              >Write</Link>
-            )}
-
-            <ProfileMenu user={user} onLogout={handleLogout} />
-          </>
-        )}
-      </div>
     </nav>
   );
 }
@@ -107,7 +115,7 @@ function ProfileMenu({
   user,
   onLogout,
 }: {
-  user: any; // replace with your CustomUser type
+  user: User;
   onLogout: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -123,6 +131,9 @@ function ProfileMenu({
     return () => document.removeEventListener('click', handler);
   }, []);
 
+  // Use user's photoURL or fallback avatar
+  const profileImage = user.photoURL || '/avatars/logo.png';
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -130,19 +141,20 @@ function ProfileMenu({
         className="flex items-center space-x-2 focus:outline-none"
       >
         <Image
-          src={`/avatars/logo.png`}
+          src={profileImage}
           alt="Profile"
           width={32} height={32}
           className="rounded-full"
+          unoptimized={true}
         />
-        <span className="text-gray-700 font-medium hover:text-indigo-600 transition">{user.username}</span>
+        <span className="text-gray-700 font-medium hover:text-indigo-600 transition">
+          {user.username}
+        </span>
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg py-2 animate-fade-in">
+        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg py-2 animate-fade-in z-20">
           <Link href="/profile" className="block px-4 py-2 hover:bg-indigo-50">My Profile</Link>
-          {/* <Link href="/profile/settings" className="block px-4 py-2 hover:bg-indigo-50">Settings</Link> */}
-          {/* <Link href="/profile/favorites" className="block px-4 py-2 hover:bg-indigo-50">Favorites</Link> */}
           <Link href="/profile/edit" className="block px-4 py-2 hover:bg-indigo-50">Edit Profile</Link>
           <button
             onClick={onLogout}

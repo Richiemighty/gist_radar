@@ -1,15 +1,24 @@
 import type { Timestamp } from 'firebase/firestore';
 
-
 export interface Gist {
-    id: string;
-    title: string;
-    content: string;
-    category: string;
-    authorId: string;          // author user id
-    mediaUrl?: string;         // optional media url (image/video)
-    embedLink?: string;        // optional embedded iframe link  
-    createdAt?: Timestamp;
-    // Add other fields you expect in your gist documents here
-  }
-  
+  id: string;
+  title: string;
+  category: string;
+  coverUrl?: string;
+  embedLink?: string;
+  blocks?: { heading: string; body: string }[];
+  createdAt?: Timestamp;
+  authorId: string;
+  authorName: string;
+}
+
+
+// app/types.ts
+export interface User {
+  uid: string;
+  username?: string ;
+  displayName?: string | null;
+  email?: string | null;
+  role?: string;
+  photoURL?: string | null;
+}
