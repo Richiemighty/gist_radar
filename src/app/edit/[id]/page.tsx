@@ -25,14 +25,17 @@ export default function EditGistPage() {
     (async () => {
       const snap = await getDoc(doc(db, 'gists', id));
       if (!snap.exists()) return router.push('/');
-      const data = snap.data() as Gist;
+  
+      const data = snap.data() as Omit<Gist, 'id'>;
+  
       if (data.authorId !== user?.uid) return router.push('/');
-      setGist({ ...data, id: snap.id }); // ✅ No duplicate id issue
+  
+      setGist({ ...data, id: snap.id });
       setTitle(data.title);
       setBlocks(data.blocks || []);
     })();
   }, [id, user, router]);
-  
+    
   const handleAddBlock = () => setBlocks([...blocks, { heading: '', body: '' }]);
 
   const handleBlockChange = (idx: number, field: 'heading' | 'body', val: string) => {
